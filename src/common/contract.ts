@@ -51,7 +51,7 @@ export const getSignerAddress = (): string => {
   return signerAddress;
 };
 
-export const getSignerCSB = async (): Promise<number> => {
+export const getSignerBalance = async (): Promise<number> => {
   if (gContract === null) {
     throw new Error("Contract not initialized.");
   }

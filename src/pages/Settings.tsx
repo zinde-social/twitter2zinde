@@ -22,6 +22,7 @@ import {
   addOperator,
   checkOperator,
   getSignerAddress,
+  getSignerBalance,
   initWithPrivateKey,
 } from "@/common/contract";
 import { useNavigate } from "react-router-dom";
@@ -244,14 +245,26 @@ const Settings = () => {
                 // Initialize
                 await initWithPrivateKey(privateKey);
 
-                // Check operator
-                if (await checkOperator()) {
-                  // Redirect
-                  nav("/migrate");
+                // Check operator CSB balance
+                const signerCSBBalance =
+                  (await getSignerBalance()) / Math.pow(10, 18);
+                console.log("Signer's CSB: ", signerCSBBalance);
+                if (signerCSBBalance > 0) {
+                  // Check operator
+                  if (await checkOperator()) {
+                    // Finally
+                    // Redirect
+                    nav("/migrate");
+                  } else {
+                    console.log("Oops, this operator is not authorized.");
+                    setSignerAddress(getSignerAddress());
+                    setShowingAddOperator(true);
+                  }
                 } else {
-                  console.log("Oops, this operator is not authorized.");
-                  setSignerAddress(getSignerAddress());
-                  setShowingAddOperator(true);
+                  setErrorMessage(
+                    "The signer has insufficient $CSB balance, it's better to visit faucet for some."
+                  );
+                  setShowingError(true);
                 }
               } catch (e: any) {
                 console.log(e);
