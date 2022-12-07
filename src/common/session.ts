@@ -7,6 +7,7 @@ export interface Setting {
 
 export interface Progress {
   finishedGroups: string[];
+  processingGroup: string;
   finishedIDs: string[];
 }
 
@@ -38,6 +39,7 @@ const initProgress = () => {
   } else {
     currentProgress = {
       finishedGroups: [],
+      processingGroup: "",
       finishedIDs: [],
     };
     localStorage.setItem(progressKey, JSON.stringify(currentProgress));

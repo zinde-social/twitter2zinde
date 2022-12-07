@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
+  Button,
+  Checkbox,
   Divider,
   List,
   ListItem,
@@ -70,7 +72,7 @@ const Migrate = () => {
 
   const [tweetsMetadata, setTweetsMetadata] =
     useState<tweetsExportedMetadata>();
-  const [groupTweets, setGroupTweets] = useState([]);
+  const [groupTweets, setGroupTweets] = useState<tweetPendingMigration[]>([]);
 
   const [selectedGroup, setSelectedGroup] = useState("");
 
@@ -100,23 +102,28 @@ const Migrate = () => {
       // console.log("Tweets in group: ", allTweetsInGroup);
 
       const parsedTweets = allTweetsInGroup.map(
-        (tweet: TweetData): tweetPendingMigration => {
+        (wrappedTweet: { tweet: TweetData }): tweetPendingMigration => {
+          const tweet = wrappedTweet.tweet;
           const isReply = !!tweet.in_reply_to_user_id_str;
-          const isRetweet = tweet.tweet.full_text.startsWith("RT @");
+          const isRetweet = tweet.full_text.startsWith("RT @");
           return {
             tweet,
             isReply,
             isRetweet,
             isToMigrate:
-              (!settings.includeReply || !isReply) &&
-              (!settings.includeRetweet || !isRetweet),
+              (settings.includeReply || !isReply) &&
+              (settings.includeRetweet || !isRetweet),
             isPendingMigrate: false,
             isMigrated: false,
           };
         }
       );
 
-      console.log("Parsed tweets: ", parsedTweets);
+      parsedTweets.sort((a: tweetPendingMigration, b: tweetPendingMigration) =>
+        new Date(a.tweet.created_at) > new Date(b.tweet.created_at) ? 1 : -1
+      );
+
+      console.log("Parsed and sorted tweets: ", parsedTweets);
 
       setGroupTweets(parsedTweets);
       setSelectedGroup(group.fileName);
@@ -132,10 +139,17 @@ const Migrate = () => {
       const tweetData = (window as any).__THAR_CONFIG.dataTypes.tweets;
       console.log(tweetData);
 
+      let nothingLeft = true;
+
       // Find already posted (if any)
       const progress = getProgress();
       for (const g of tweetData.files) {
-        g.isMigrated = progress.finishedGroups.includes(g.fileName);
+        if (progress.finishedGroups.includes(g.fileName)) {
+          g.isMigrated = true;
+        } else {
+          g.isMigrated = false;
+          nothingLeft = false;
+        }
       }
 
       // Set list
@@ -162,8 +176,29 @@ const Migrate = () => {
           Migrate
         </Typography>
 
+        <Box
+          sx={{
+            marginTop: 2,
+          }}
+        >
+          <Typography>
+            Please pay attention to the twitter groups on the left side. <br />
+            They may have different time period, and thus could be tricky <br />
+            to post them to Crossbell if not ordered properly.
+          </Typography>
+          <Button
+            type="button"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+            onClick={() => {}}
+          >
+            Start processing this group
+          </Button>
+        </Box>
+
         <Box display={"flex"} flexDirection={"row"} width={"100%"} mt={8}>
-          <Box flex={1}>
+          <Box>
             <Typography textAlign={"center"}>Tweets Groups</Typography>
             <List>
               {tweetsMetadata?.files.map((group, index) => (
@@ -192,6 +227,28 @@ const Migrate = () => {
           <Divider orientation={"vertical"} flexItem />
           <Box flex={1}>
             <Typography textAlign={"center"}>Tweets In Group</Typography>
+            <List>
+              {groupTweets.map((tweet, index) => (
+                <ListItem key={tweet.tweet.id_str}>
+                  <ListItemButton>
+                    <Checkbox
+                      edge={"start"}
+                      checked={tweet.isToMigrate}
+                      disableRipple
+                    />
+                    <ListItemText
+                      primary={tweet.tweet.full_text}
+                      secondary={new Date(
+                        tweet.tweet.created_at
+                      ).toLocaleString()}
+                      style={{
+                        whiteSpace: "pre-wrap",
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
           </Box>
         </Box>
       </Box>

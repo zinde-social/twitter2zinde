@@ -116,9 +116,7 @@ export interface TweetData {
 
   created_at: string;
 
-  tweet: {
-    full_text: string;
-  };
+  full_text: string;
 
   //retweeted: boolean; // it's just all false, use /^RT @\w+:/ instead
   extended_entities: {
@@ -158,7 +156,7 @@ export const signerPostNote = async (
   const note: NoteMetadata = {
     type: "note",
     sources: ["T2C", "Twitter"],
-    content: tweet.tweet.full_text,
+    content: tweet.full_text,
     attachments: mediaAttachments,
     external_urls: [`https://twitter.com/${user}/status/${tweet.id_str}`],
   };
