@@ -1,9 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const Intro = () => {
   const nav = useNavigate();
+
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    if ((window as any).__THAR_CONFIG) {
+      setUsername((window as any).__THAR_CONFIG.userInfo.displayName);
+    } else {
+      nav("/error");
+    }
+  }, [(window as any).__THAR_CONFIG]);
 
   return (
     <Box
@@ -15,7 +25,7 @@ const Intro = () => {
       }}
     >
       <Typography component="h3" variant="h5">
-        Welcome
+        Welcome {username} !
       </Typography>
       <Box
         sx={{

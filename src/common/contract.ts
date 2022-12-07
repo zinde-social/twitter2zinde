@@ -69,12 +69,18 @@ export const checkOperator = async (): Promise<boolean> => {
     throw new Error("Contract not initialized.");
   }
 
-  const { data: isOperator } = await gContract.isOperator(
-    characterId,
-    signerAddress
-  );
+  const { data: permissions } =
+    await gContract.getOperatorPermissionsForCharacter(
+      characterId,
+      signerAddress
+    );
 
-  return isOperator;
+  console.log("Signer permissions: ", permissions);
+
+  // DEBUG ONLY
+  return true;
+
+  return permissions.includes("POST_NOTE");
 };
 
 export const addOperator = async () => {
@@ -84,7 +90,11 @@ export const addOperator = async () => {
 
   // Set operator
   const uProvider = await getMetamaskProvider();
-  await uProvider.addOperator(characterId, signerAddress);
+  await uProvider.grantOperatorPermissionsForCharacter(
+    characterId,
+    signerAddress,
+    ["POST_NOTE"]
+  );
 };
 
 export const removeOperator = async () => {
@@ -94,7 +104,11 @@ export const removeOperator = async () => {
 
   // Remove Operator
   const uProvider = await getMetamaskProvider();
-  await uProvider.removeOperator(characterId, signerAddress);
+  await uProvider.grantOperatorPermissionsForCharacter(
+    characterId,
+    signerAddress,
+    []
+  );
 };
 
 export interface TweetData {
@@ -102,7 +116,10 @@ export interface TweetData {
 
   created_at: string;
 
-  full_text: string;
+  tweet: {
+    full_text: string;
+  };
+
   //retweeted: boolean; // it's just all false, use /^RT @\w+:/ instead
   extended_entities: {
     media: {
@@ -114,7 +131,11 @@ export interface TweetData {
   in_reply_to_status_id_str?: string;
 }
 
-export const signerPostNote = async (user: string, tweet: TweetData) => {
+export const signerPostNote = async (
+  user: string,
+  tweet: TweetData,
+  mediaDirectory: string
+) => {
   if (gContract === null) {
     throw new Error("Contract not initialized.");
   }
@@ -123,7 +144,7 @@ export const signerPostNote = async (user: string, tweet: TweetData) => {
   const mediaAttachments: NoteMetadataAttachmentBase<"address">[] = [];
   for (const m of tweet.extended_entities.media) {
     const mediaFileName = `${tweet.id_str}-${m.media_url.split("/").pop()}`;
-    const mediaFullName = `data/tweets_media/${mediaFileName}`;
+    const mediaFullName = `${mediaDirectory}/${mediaFileName}`;
     const result = await fetch(mediaFullName);
     const blob = await result.blob();
     const ipfsUri = await uploadFile(blob);
@@ -137,7 +158,7 @@ export const signerPostNote = async (user: string, tweet: TweetData) => {
   const note: NoteMetadata = {
     type: "note",
     sources: ["T2C", "Twitter"],
-    content: tweet.full_text,
+    content: tweet.tweet.full_text,
     attachments: mediaAttachments,
     external_urls: [`https://twitter.com/${user}/status/${tweet.id_str}`],
   };

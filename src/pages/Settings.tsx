@@ -26,6 +26,7 @@ import {
   initWithPrivateKey,
 } from "@/common/contract";
 import { useNavigate } from "react-router-dom";
+import Loading from "@/components/Loading";
 
 const Settings = () => {
   const nav = useNavigate();
@@ -34,10 +35,12 @@ const Settings = () => {
   const [characterId, setCharacterId] = useState(0);
   const [isIncludeReply, setIncludeReply] = useState(false);
   const [isIncludeRetweet, setIncludeRetweet] = useState(false);
+  const [isPreventDuplicate, setPreventDuplicate] = useState(true);
 
   const [isShowingError, setShowingError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [isShowingGetCSB, setShowingGetCSB] = useState(false);
   const [isShowingAddOperator, setShowingAddOperator] = useState(false);
   const [signerAddress, setSignerAddress] = useState("");
 
@@ -46,34 +49,17 @@ const Settings = () => {
   useEffect(() => {
     const setting = getSetting();
 
+    console.log(setting);
+
     setCharacterId(setting.characterId);
     setIncludeReply(setting.includeReply);
     setIncludeRetweet(setting.includeRetweet);
+    setPreventDuplicate(setting.preventDuplicate);
   }, []);
 
   return (
     <>
-      {/*Loading Animation*/}
-      <Backdrop
-        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={isLoading}
-      >
-        <Box
-          component="div"
-          sx={{ mt: 1 }}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "2rem",
-          }}
-        >
-          <CircularProgress color="inherit" />
-          <Typography component="h3" variant="h5">
-            Loading...
-          </Typography>
-        </Box>
-      </Backdrop>
+      <Loading open={isLoading} message={"Loading..."} />
 
       {/*Error Dialog*/}
       <Dialog
@@ -98,6 +84,48 @@ const Settings = () => {
             autoFocus
           >
             OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/*Get CSB Dialog*/}
+      <Dialog
+        open={isShowingGetCSB}
+        onClose={() => {
+          setShowingGetCSB(false);
+        }}
+        aria-labelledby="get-csb-dialog-title"
+        aria-describedby="get-csb-dialog-description"
+      >
+        <DialogTitle id="add-operator-dialog-title">
+          {"Insufficient $CSB balance"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="add-operator-dialog-description">
+            The signer has insufficient $CSB balance, <br />
+            it's better to visit faucet for some.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setShowingGetCSB(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              setShowingGetCSB(false);
+              window.open(
+                `https://faucet.crossbell.io/?address=${signerAddress}`,
+                "_blank"
+              );
+            }}
+            variant="contained"
+            autoFocus
+          >
+            Proceed
           </Button>
         </DialogActions>
       </Dialog>
@@ -197,7 +225,7 @@ const Settings = () => {
             <FormControlLabel
               control={
                 <Checkbox
-                  value={isIncludeReply}
+                  checked={isIncludeReply}
                   onChange={(ev) => {
                     setIncludeReply(ev.target.checked);
                   }}
@@ -211,7 +239,7 @@ const Settings = () => {
             <FormControlLabel
               control={
                 <Checkbox
-                  value={isIncludeRetweet}
+                  checked={isIncludeRetweet}
                   onChange={(ev) => {
                     setIncludeRetweet(ev.target.checked);
                   }}
@@ -219,6 +247,20 @@ const Settings = () => {
                 />
               }
               label="Include retweets"
+            />
+          </Grid>
+          <Grid>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isPreventDuplicate}
+                  onChange={(ev) => {
+                    setPreventDuplicate(ev.target.checked);
+                  }}
+                  color="primary"
+                />
+              }
+              label="Prevent Duplicate"
             />
           </Grid>
           <Button
@@ -235,6 +277,7 @@ const Settings = () => {
                 characterId,
                 includeReply: isIncludeReply,
                 includeRetweet: isIncludeRetweet,
+                preventDuplicate: isPreventDuplicate,
               });
 
               // Set Character ID
@@ -244,6 +287,9 @@ const Settings = () => {
               try {
                 // Initialize
                 await initWithPrivateKey(privateKey);
+
+                // Set signer address
+                setSignerAddress(getSignerAddress());
 
                 // Check operator CSB balance
                 const signerCSBBalance =
@@ -257,14 +303,10 @@ const Settings = () => {
                     nav("/migrate");
                   } else {
                     console.log("Oops, this operator is not authorized.");
-                    setSignerAddress(getSignerAddress());
                     setShowingAddOperator(true);
                   }
                 } else {
-                  setErrorMessage(
-                    "The signer has insufficient $CSB balance, it's better to visit faucet for some."
-                  );
-                  setShowingError(true);
+                  setShowingGetCSB(true);
                 }
               } catch (e: any) {
                 console.log(e);

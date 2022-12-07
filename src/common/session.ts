@@ -1,12 +1,13 @@
 export interface Setting {
   includeReply: boolean;
   includeRetweet: boolean;
+  preventDuplicate: boolean;
   characterId: number;
 }
 
 export interface Progress {
-  currentGroup: string;
-  currentFinishedId: string;
+  finishedGroups: string[];
+  finishedIDs: string[];
 }
 
 const settingKey = "twitter2crossbell-setting";
@@ -15,7 +16,7 @@ let currentSetting: Setting | null = null;
 let currentProgress: Progress | null = null;
 
 const initSetting = () => {
-  const storedSetting = sessionStorage.getItem(settingKey);
+  const storedSetting = localStorage.getItem(settingKey);
   if (storedSetting) {
     currentSetting = JSON.parse(storedSetting);
   } else {
@@ -23,22 +24,23 @@ const initSetting = () => {
     currentSetting = {
       includeReply: false,
       includeRetweet: false,
+      preventDuplicate: true,
       characterId: 0,
     };
-    sessionStorage.setItem(settingKey, JSON.stringify(currentSetting));
+    localStorage.setItem(settingKey, JSON.stringify(currentSetting));
   }
 };
 
 const initProgress = () => {
-  const storedProgress = sessionStorage.getItem(progressKey);
+  const storedProgress = localStorage.getItem(progressKey);
   if (storedProgress) {
     currentProgress = JSON.parse(storedProgress);
   } else {
     currentProgress = {
-      currentGroup: "",
-      currentFinishedId: "",
+      finishedGroups: [],
+      finishedIDs: [],
     };
-    sessionStorage.setItem(progressKey, JSON.stringify(currentProgress));
+    localStorage.setItem(progressKey, JSON.stringify(currentProgress));
   }
 };
 
@@ -60,12 +62,12 @@ export const getProgress = (): Progress => {
 
 export const setSetting = (newSetting: Setting) => {
   currentSetting = newSetting;
-  sessionStorage.setItem(settingKey, JSON.stringify(newSetting));
+  localStorage.setItem(settingKey, JSON.stringify(newSetting));
   console.log(newSetting);
 };
 
 export const setProgress = (newProgress: Progress) => {
   currentProgress = newProgress;
-  sessionStorage.setItem(progressKey, JSON.stringify(newProgress));
+  localStorage.setItem(progressKey, JSON.stringify(newProgress));
   console.log(newProgress);
 };

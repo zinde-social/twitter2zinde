@@ -4,6 +4,7 @@ import Settings from "./pages/Settings";
 import Migrate from "./pages/Migrate";
 import Finish from "./pages/Finish";
 import Intro from "@/pages/Intro";
+import Error from "@/pages/Error";
 
 const Router = () => (
   <HashRouter>
@@ -12,6 +13,7 @@ const Router = () => (
       <Route path={"settings"} element={<Settings />} />
       <Route path={"migrate"} element={<Migrate />} />
       <Route path={"finish"} element={<Finish />} />
+      <Route path={"error"} element={<Error />} />
     </Routes>
   </HashRouter>
 );
