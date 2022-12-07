@@ -4,6 +4,7 @@ import {
   Button,
   Checkbox,
   Divider,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
@@ -14,7 +15,7 @@ import {
 import { TweetData } from "@/common/contract";
 import Loading from "@/components/Loading";
 import { getProgress, getSetting } from "@/common/session";
-import { Add, Check } from "@mui/icons-material";
+import { AccessTime, Add, AddTask, Check } from "@mui/icons-material";
 
 interface tweetsGroup {
   count: string;
@@ -192,6 +193,7 @@ const Migrate = () => {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
             onClick={() => {}}
+            disabled={selectedGroup === ""}
           >
             Start processing this group
           </Button>
@@ -229,13 +231,28 @@ const Migrate = () => {
             <Typography textAlign={"center"}>Tweets In Group</Typography>
             <List>
               {groupTweets.map((tweet, index) => (
-                <ListItem key={tweet.tweet.id_str}>
+                <ListItem
+                  key={tweet.tweet.id_str}
+                  secondaryAction={
+                    tweet.isMigrated ? (
+                      <Check />
+                    ) : tweet.isPendingMigrate ? (
+                      <AccessTime />
+                    ) : tweet.isToMigrate ? (
+                      <AddTask />
+                    ) : (
+                      <></>
+                    )
+                  }
+                >
                   <ListItemButton>
-                    <Checkbox
-                      edge={"start"}
-                      checked={tweet.isToMigrate}
-                      disableRipple
-                    />
+                    <ListItemIcon>
+                      <Checkbox
+                        edge={"start"}
+                        checked={tweet.isToMigrate}
+                        disableRipple
+                      />
+                    </ListItemIcon>
                     <ListItemText
                       primary={tweet.tweet.full_text}
                       secondary={new Date(
