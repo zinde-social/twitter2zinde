@@ -2,7 +2,7 @@ export interface Setting {
   includeReply: boolean;
   includeRetweet: boolean;
   preventDuplicate: boolean;
-  characterId: number;
+  characterHandle: string;
 }
 
 export interface Progress {
@@ -26,7 +26,7 @@ const initSetting = () => {
       includeReply: false,
       includeRetweet: false,
       preventDuplicate: true,
-      characterId: 0,
+      characterHandle: "",
     };
     localStorage.setItem(settingKey, JSON.stringify(currentSetting));
   }

@@ -24,7 +24,7 @@ import {
   getSignerAddress,
   getSignerBalance,
   initWithPrivateKey,
-  setContractCharacterId,
+  setContractCharacterHandle,
 } from "@/common/contract";
 import { useNavigate } from "react-router-dom";
 import Loading from "@/components/Loading";
@@ -33,7 +33,7 @@ const Settings = () => {
   const nav = useNavigate();
 
   const [privateKey, setPrivateKey] = useState("");
-  const [characterId, setCharacterId] = useState(0);
+  const [characterHandle, setCharacterHandle] = useState("");
   const [isIncludeReply, setIncludeReply] = useState(false);
   const [isIncludeRetweet, setIncludeRetweet] = useState(false);
   const [isPreventDuplicate, setPreventDuplicate] = useState(true);
@@ -52,7 +52,7 @@ const Settings = () => {
 
     console.log(setting);
 
-    setCharacterId(setting.characterId);
+    setCharacterHandle(setting.characterHandle);
     setIncludeReply(setting.includeReply);
     setIncludeRetweet(setting.includeRetweet);
     setPreventDuplicate(setting.preventDuplicate);
@@ -212,13 +212,12 @@ const Settings = () => {
               margin="normal"
               required
               fullWidth
-              name="characterId"
-              label="Crossbell Character ID"
-              type="number"
-              aria-valuemin={1}
-              value={characterId}
+              name="characterHandle"
+              label="Crossbell Character Handle"
+              type="text"
+              value={characterHandle}
               onChange={(ev) => {
-                setCharacterId(parseInt(ev.target.value));
+                setCharacterHandle(ev.target.value);
               }}
             />
           </Grid>
@@ -275,18 +274,17 @@ const Settings = () => {
 
               // Save settings
               setSetting({
-                characterId,
+                characterHandle,
                 includeReply: isIncludeReply,
                 includeRetweet: isIncludeRetweet,
                 preventDuplicate: isPreventDuplicate,
               });
 
-              // Set Character ID
-              setContractCharacterId(characterId);
-
-              // Use private key to initialize
               try {
-                // Initialize
+                // Set Character handle
+                await setContractCharacterHandle(characterHandle);
+
+                // Use private key to initialize
                 await initWithPrivateKey(privateKey);
 
                 // Set signer address

@@ -8,8 +8,11 @@ let signerAddress: string = "";
 
 let characterId: number = 0;
 
-export const setContractCharacterId = (id: number) => {
-  characterId = id;
+export const setContractCharacterHandle = async (handle: string) => {
+  const res = await fetch(
+    `https://indexer.crossbell.io/v1/handles/${handle}/character`
+  ).then((res) => res.json());
+  characterId = res.characterId;
 };
 
 export const initWithPrivateKey = async (privateKey: string) => {
