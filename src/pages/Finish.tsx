@@ -1,14 +1,53 @@
 import React, { useState } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Typography,
+} from "@mui/material";
 import { removeOperator } from "@/common/contract";
 import Loading from "@/components/Loading";
 
 const Finish = () => {
   const [isLoading, setLoading] = useState(false);
+  const [isShowingError, setShowingError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   return (
     <>
       <Loading open={isLoading} message={"Loading..."} />
+
+      {/*Error Dialog*/}
+      <Dialog
+        open={isShowingError}
+        onClose={() => {
+          setShowingError(false);
+        }}
+        aria-labelledby="error-dialog-title"
+        aria-describedby="error-dialog-description"
+      >
+        <DialogTitle id="error-dialog-title">{"Oops"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="error-dialog-description">
+            {errorMessage}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setShowingError(false);
+            }}
+            autoFocus
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box
         sx={{
           marginTop: 8,
@@ -41,9 +80,13 @@ const Finish = () => {
                 await removeOperator();
                 localStorage.clear();
                 window.close();
-              } catch (e) {
+              } catch (e: any) {
                 console.log(e);
+                setErrorMessage(e.message);
+                setShowingError(true);
               }
+
+              setLoading(false);
             }}
           >
             Unauthorize Operator
