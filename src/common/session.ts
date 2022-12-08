@@ -73,3 +73,11 @@ export const setProgress = (newProgress: Progress) => {
   localStorage.setItem(progressKey, JSON.stringify(newProgress));
   console.log(newProgress);
 };
+
+export const clearSetting = () => {
+  localStorage.removeItem(settingKey);
+};
+
+export const cleatProgress = () => {
+  localStorage.removeItem(progressKey);
+};

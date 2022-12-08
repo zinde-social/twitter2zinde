@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { removeOperator } from "@/common/contract";
 import Loading from "@/components/Loading";
+import { clearSetting, cleatProgress } from "@/common/session";
 
 const Finish = () => {
   const [isLoading, setLoading] = useState(false);
@@ -78,7 +79,6 @@ const Finish = () => {
               try {
                 setLoading(true);
                 await removeOperator();
-                localStorage.clear();
                 window.close();
               } catch (e: any) {
                 console.log(e);
@@ -86,6 +86,9 @@ const Finish = () => {
                 setShowingError(true);
               }
 
+              // Clear settings and progress
+              clearSetting();
+              cleatProgress();
               setLoading(false);
             }}
           >
