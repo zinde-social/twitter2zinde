@@ -3,6 +3,11 @@ import {
   Box,
   Button,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   IconButton,
   List,
@@ -71,6 +76,9 @@ const Migrate = () => {
   const [loadingMessage, setLoadingMessage] = useState(
     "Loading tweet collections..."
   );
+
+  const [isShowingError, setShowingError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const [tweetsMetadata, setTweetsMetadata] =
     useState<tweetsExportedMetadata>();
@@ -177,6 +185,33 @@ const Migrate = () => {
     <>
       <Loading open={isLoading} message={loadingMessage} />
 
+      {/*Error Dialog*/}
+      <Dialog
+        open={isShowingError}
+        onClose={() => {
+          setShowingError(false);
+        }}
+        aria-labelledby="error-dialog-title"
+        aria-describedby="error-dialog-description"
+      >
+        <DialogTitle id="error-dialog-title">{"Oops"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="error-dialog-description">
+            {errorMessage}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setShowingError(false);
+            }}
+            autoFocus
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box
         sx={{
           marginTop: 8,
@@ -223,51 +258,61 @@ const Migrate = () => {
 
               const settings = getSetting();
 
-              for (let index = 0; index < groupTweets.length; index++) {
-                const tweet = groupTweets[index];
-                setLoadingMessage(
-                  `Processing ${index} of ${groupTweets.length} notes...`
-                );
-                if (tweet.isToMigrate) {
-                  setGroupTweets(
-                    groupTweets
-                      .slice(0, index)
-                      .concat([
-                        {
-                          ...tweet,
-                          isPendingMigrate: true,
-                        },
-                      ])
-                      .concat(groupTweets.slice(index + 1, groupTweets.length))
+              try {
+                for (let index = 0; index < groupTweets.length; index++) {
+                  const tweet = groupTweets[index];
+                  setLoadingMessage(
+                    `Processing ${index} of ${groupTweets.length} notes...`
                   );
-                  if (settings.preventDuplicate) {
-                    // Try to check tweet status
-                    if (await checkDuplicate(username, tweet.tweet.id_str)) {
-                      // Already posted
-                      continue; // Skip
+                  if (tweet.isToMigrate) {
+                    setGroupTweets(
+                      groupTweets
+                        .slice(0, index)
+                        .concat([
+                          {
+                            ...tweet,
+                            isPendingMigrate: true,
+                          },
+                        ])
+                        .concat(
+                          groupTweets.slice(index + 1, groupTweets.length)
+                        )
+                    );
+                    if (settings.preventDuplicate) {
+                      // Try to check tweet status
+                      if (await checkDuplicate(username, tweet.tweet.id_str)) {
+                        // Already posted
+                        continue; // Skip
+                      }
                     }
+                    await signerPostNote(username, tweet.tweet, mediaDir);
+                    const progress = getProgress();
+                    setProgress({
+                      ...progress,
+                      finishedIDs: progress.finishedIDs.concat(
+                        tweet.tweet.id_str
+                      ),
+                    });
+                    setGroupTweets(
+                      groupTweets
+                        .slice(0, index)
+                        .concat([
+                          {
+                            ...tweet,
+                            isPendingMigrate: false,
+                            isMigrated: true,
+                          },
+                        ])
+                        .concat(
+                          groupTweets.slice(index + 1, groupTweets.length)
+                        )
+                    );
                   }
-                  await signerPostNote(username, tweet.tweet, mediaDir);
-                  const progress = getProgress();
-                  setProgress({
-                    ...progress,
-                    finishedIDs: progress.finishedIDs.concat(
-                      tweet.tweet.id_str
-                    ),
-                  });
-                  setGroupTweets(
-                    groupTweets
-                      .slice(0, index)
-                      .concat([
-                        {
-                          ...tweet,
-                          isPendingMigrate: false,
-                          isMigrated: true,
-                        },
-                      ])
-                      .concat(groupTweets.slice(index + 1, groupTweets.length))
-                  );
                 }
+              } catch (e: any) {
+                console.log(e);
+                setErrorMessage(e.message);
+                setShowingError(true);
               }
 
               console.log(selectedGroup, "finished");
