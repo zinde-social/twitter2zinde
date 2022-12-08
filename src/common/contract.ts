@@ -78,9 +78,6 @@ export const checkOperator = async (): Promise<boolean> => {
 
   console.log("Signer permissions: ", permissions);
 
-  // DEBUG ONLY
-  return true;
-
   return permissions.includes("POST_NOTE");
 };
 
