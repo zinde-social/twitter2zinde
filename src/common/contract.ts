@@ -146,6 +146,9 @@ export const signerPostNote = async (
     mediaAttachments.push({
       name: mediaFileName,
       address: ipfsUri,
+      mime_type: blob.type,
+      size_in_bytes: blob.size,
+      alt: mediaFileName,
     });
   }
 
