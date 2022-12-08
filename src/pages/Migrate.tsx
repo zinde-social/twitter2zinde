@@ -12,10 +12,11 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
-import { TweetData } from "@/common/contract";
+import { checkDuplicate, signerPostNote, TweetData } from "@/common/contract";
 import Loading from "@/components/Loading";
-import { getProgress, getSetting } from "@/common/session";
+import { getProgress, getSetting, setProgress } from "@/common/session";
 import { AccessTime, Add, AddTask, Check } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 interface tweetsGroup {
   count: string;
@@ -101,21 +102,24 @@ const Migrate = () => {
       );
 
       // console.log("Tweets in group: ", allTweetsInGroup);
+      const currentProgress = getProgress();
 
       const parsedTweets = allTweetsInGroup.map(
         (wrappedTweet: { tweet: TweetData }): tweetPendingMigration => {
           const tweet = wrappedTweet.tweet;
           const isReply = !!tweet.in_reply_to_user_id_str;
           const isRetweet = tweet.full_text.startsWith("RT @");
+          const isMigrated = currentProgress.finishedIDs.includes(tweet.id_str);
           return {
             tweet,
             isReply,
             isRetweet,
             isToMigrate:
+              !isMigrated &&
               (settings.includeReply || !isReply) &&
               (settings.includeRetweet || !isRetweet),
             isPendingMigrate: false,
-            isMigrated: false,
+            isMigrated,
           };
         }
       );
@@ -134,7 +138,9 @@ const Migrate = () => {
     document.body.appendChild(groupScript);
   };
 
-  useEffect(() => {
+  const nav = useNavigate();
+
+  const checkAllGroups = () => {
     // Get all twitter groups
     if ((window as any).__THAR_CONFIG) {
       const tweetData = (window as any).__THAR_CONFIG.dataTypes.tweets;
@@ -153,13 +159,19 @@ const Migrate = () => {
         }
       }
 
+      if (nothingLeft) {
+        nav("/finish");
+      }
+
       // Set list
       setTweetsMetadata(tweetData);
 
       // Finish loading
       setLoading(false);
     }
-  }, [(window as any).__THAR_CONFIG]);
+  };
+
+  useEffect(checkAllGroups, [(window as any).__THAR_CONFIG]);
 
   return (
     <>
@@ -192,7 +204,85 @@ const Migrate = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
-            onClick={() => {}}
+            onClick={async () => {
+              setLoading(true);
+              setLoadingMessage("Initializing basic information...");
+              const username = (window as any).__THAR_CONFIG.userInfo.userName;
+              const mediaDir = tweetsMetadata?.mediaDirectory;
+
+              if (!username || !mediaDir) {
+                nav("/error");
+                return;
+              }
+
+              setProgress({
+                ...getProgress(),
+                processingGroup: selectedGroup,
+                finishedIDs: [],
+              });
+
+              const settings = getSetting();
+
+              for (let index = 0; index < groupTweets.length; index++) {
+                const tweet = groupTweets[index];
+                setLoadingMessage(
+                  `Processing ${index} of ${groupTweets.length} notes...`
+                );
+                if (tweet.isToMigrate) {
+                  setGroupTweets(
+                    groupTweets
+                      .slice(0, index)
+                      .concat([
+                        {
+                          ...tweet,
+                          isPendingMigrate: true,
+                        },
+                      ])
+                      .concat(groupTweets.slice(index + 1, groupTweets.length))
+                  );
+                  if (settings.preventDuplicate) {
+                    // Try to check tweet status
+                    if (await checkDuplicate(username, tweet.tweet.id_str)) {
+                      // Already posted
+                      continue; // Skip
+                    }
+                  }
+                  await signerPostNote(username, tweet.tweet, mediaDir);
+                  const progress = getProgress();
+                  setProgress({
+                    ...progress,
+                    finishedIDs: progress.finishedIDs.concat(
+                      tweet.tweet.id_str
+                    ),
+                  });
+                  setGroupTweets(
+                    groupTweets
+                      .slice(0, index)
+                      .concat([
+                        {
+                          ...tweet,
+                          isPendingMigrate: false,
+                          isMigrated: true,
+                        },
+                      ])
+                      .concat(groupTweets.slice(index + 1, groupTweets.length))
+                  );
+                }
+              }
+
+              console.log(selectedGroup, "finished");
+
+              const progress = getProgress();
+              setProgress({
+                ...progress,
+                finishedGroups: progress.finishedGroups.concat(selectedGroup),
+                processingGroup: "",
+              });
+
+              setLoading(false);
+
+              checkAllGroups();
+            }}
             disabled={selectedGroup === ""}
           >
             Start processing this group
@@ -231,21 +321,24 @@ const Migrate = () => {
             <Typography textAlign={"center"}>Tweets In Group</Typography>
             <List>
               {groupTweets.map((tweet, index) => (
-                <ListItem
-                  key={tweet.tweet.id_str}
-                  secondaryAction={
-                    tweet.isMigrated ? (
-                      <Check />
-                    ) : tweet.isPendingMigrate ? (
-                      <AccessTime />
-                    ) : tweet.isToMigrate ? (
-                      <AddTask />
-                    ) : (
-                      <></>
-                    )
-                  }
-                >
-                  <ListItemButton>
+                <ListItem key={tweet.tweet.id_str}>
+                  <ListItemButton
+                    onClick={() => {
+                      setGroupTweets(
+                        groupTweets
+                          .slice(0, index)
+                          .concat([
+                            {
+                              ...tweet,
+                              isToMigrate: !tweet.isToMigrate,
+                            },
+                          ])
+                          .concat(
+                            groupTweets.slice(index + 1, groupTweets.length)
+                          )
+                      );
+                    }}
+                  >
                     <ListItemIcon>
                       <Checkbox
                         edge={"start"}
@@ -262,6 +355,17 @@ const Migrate = () => {
                         whiteSpace: "pre-wrap",
                       }}
                     />
+                    <ListItemIcon>
+                      {tweet.isMigrated ? (
+                        <Check />
+                      ) : tweet.isPendingMigrate ? (
+                        <AccessTime />
+                      ) : tweet.isToMigrate ? (
+                        <AddTask />
+                      ) : (
+                        <></>
+                      )}
+                    </ListItemIcon>
                   </ListItemButton>
                 </ListItem>
               ))}

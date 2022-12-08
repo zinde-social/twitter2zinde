@@ -2,6 +2,7 @@ import { Contract, NoteMetadataAttachmentBase } from "crossbell.js";
 import type { NoteMetadata } from "crossbell.js";
 import { ethers } from "ethers";
 import { uploadFile, uploadJson } from "./ipfs";
+import { URLSearchParams } from "url";
 
 let gContract: Contract | null = null;
 let signerAddress: string = "";
@@ -165,4 +166,22 @@ export const signerPostNote = async (
 
   // Push on chain
   await gContract.postNote(characterId, noteIPFSUri);
+};
+
+export const checkDuplicate = async (
+  user: string,
+  tweetId: string
+): Promise<boolean> => {
+  const tweetUri = `https://twitter.com/${user}/status/${tweetId}`;
+  try {
+    const res = await fetch(
+      `https://indexer.crossbell.io/v1/notes?externalUrls=${encodeURIComponent(
+        tweetUri
+      )}&includeDeleted=false&includeEmptyMetadata=false&limit=1`
+    ).then((res) => res.json());
+    return res.list?.length > 0;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
 };
