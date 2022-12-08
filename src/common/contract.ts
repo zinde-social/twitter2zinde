@@ -2,14 +2,13 @@ import { Contract, NoteMetadataAttachmentBase } from "crossbell.js";
 import type { NoteMetadata } from "crossbell.js";
 import { ethers } from "ethers";
 import { uploadFile, uploadJson } from "./ipfs";
-import { URLSearchParams } from "url";
 
 let gContract: Contract | null = null;
 let signerAddress: string = "";
 
 let characterId: number = 0;
 
-export const setCharacterId = (id: number) => {
+export const setContractCharacterId = (id: number) => {
   characterId = id;
 };
 

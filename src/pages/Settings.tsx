@@ -24,6 +24,7 @@ import {
   getSignerAddress,
   getSignerBalance,
   initWithPrivateKey,
+  setContractCharacterId,
 } from "@/common/contract";
 import { useNavigate } from "react-router-dom";
 import Loading from "@/components/Loading";
@@ -281,7 +282,7 @@ const Settings = () => {
               });
 
               // Set Character ID
-              setCharacterId(characterId);
+              setContractCharacterId(characterId);
 
               // Use private key to initialize
               try {
