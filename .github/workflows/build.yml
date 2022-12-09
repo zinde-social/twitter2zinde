@@ -32,7 +32,9 @@ jobs:
       run: npm run build
     
     - name: Pack built files
-      run: zip -r t2c.zip build/*
+      run: |
+        cd build/
+        zip -r ../t2c.zip ./*
       
     - name: Create release
       if: startsWith(github.event.ref, 'refs/tags/')
@@ -49,6 +51,6 @@ jobs:
     - name: Upload built file as artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ env.ARCHIVE_NAME }}
+        name: Build
         path: t2c.zip
 
