@@ -40,8 +40,7 @@ jobs:
       if: startsWith(github.event.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        name: T2C - ${{ env.TAG_NAME }}
-        tag_name: ${{ env.TAG_NAME }}
+        name: T2C - ${{ github.ref }}
         generate_release_notes: true
         files: |
           t2c.zip
