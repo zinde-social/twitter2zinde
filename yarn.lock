@@ -4032,10 +4032,10 @@ cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-crossbell.js@^0.13.0:
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/crossbell.js/-/crossbell.js-0.13.0.tgz#4739aae52d815104a3e6af9c2bc3e139a293ac0c"
-  integrity sha512-klynV3ocDhYO52h499ZX+OTGS0P3/6A+WUh7j02przsmC/cPei7SEFLzQIiN5e1tnTTrl26CKFB9A00opC36tg==
+crossbell.js@^0.14.0:
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/crossbell.js/-/crossbell.js-0.14.0.tgz#638b81ed891afe2892cbac67967744ec7ff48536"
+  integrity sha512-Wb5A0RyHlY6hAGcJpoqPOFEFpmSCAbCMgDyrjiHS6wJVAnJc415ZbOeUsTE1w8CjhqQaU4NtfO0fnsO0ojUFlg==
   dependencies:
     async-retry "^1.3.3"
     ethers "^5.7.2"
