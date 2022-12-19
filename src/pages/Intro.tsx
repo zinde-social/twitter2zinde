@@ -44,9 +44,10 @@ const Intro = () => {
           What's the signer private key? We need a signer to proceed the <br />
           automation works, so you won't need to sign for every single <br />
           transaction. It can be everything. If not sure, just generate <br />
-          a random one should be fine. DON'T use any valuable private keys{" "}
+          a random one should be fine. DON'T use any valuable ones <br />
+          because it could be dangerous to expose them. <br />
           <br />
-          because it could be dangerous to expose them.
+          For safety concerns, private keys won't be saved into checkpoint.
         </Typography>
         <Button
           type="button"

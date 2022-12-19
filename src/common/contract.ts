@@ -46,6 +46,11 @@ const getMetamaskProvider = async (): Promise<Contract> => {
   return uContract;
 };
 
+export const generateRandomPrivateKey = () => {
+  const randWallet = ethers.Wallet.createRandom();
+  return randWallet.privateKey;
+};
+
 export const getSignerAddress = (): string => {
   if (gContract === null) {
     throw new Error("Contract not initialized.");

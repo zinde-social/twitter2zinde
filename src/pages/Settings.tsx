@@ -1,26 +1,30 @@
 import React, { useEffect, useState } from "react";
 import {
   Avatar,
-  Backdrop,
   Box,
   Button,
   Checkbox,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
   FormControlLabel,
   Grid,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  OutlinedInput,
   TextField,
   Typography,
 } from "@mui/material";
-import { PowerSettingsNewOutlined } from "@mui/icons-material";
+import { Casino, PowerSettingsNewOutlined } from "@mui/icons-material";
 import { getSetting, setSetting } from "@/common/session";
 import {
   addOperator,
   checkOperator,
+  generateRandomPrivateKey,
   getSignerAddress,
   getSignerBalance,
   initWithPrivateKey,
@@ -196,18 +200,35 @@ const Settings = () => {
         </Typography>
         <Box component="div" sx={{ mt: 1 }}>
           <Grid>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="Signer Private Key"
-              type="password"
-              name="privateKey"
-              value={privateKey}
-              onChange={(ev) => {
-                setPrivateKey(ev.target.value);
-              }}
-            />
+            <FormControl fullWidth variant="outlined">
+              <InputLabel htmlFor="signer-private-key">
+                Signer Private Key
+              </InputLabel>
+              <OutlinedInput
+                id="signer-private-key"
+                type="password"
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={() => {
+                        const pk = generateRandomPrivateKey();
+                        setPrivateKey(pk);
+                      }}
+                      edge="end"
+                    >
+                      <Casino />
+                    </IconButton>
+                  </InputAdornment>
+                }
+                required
+                value={privateKey}
+                onChange={(ev) => {
+                  setPrivateKey(ev.target.value);
+                }}
+                label="Signer Private Key"
+              />
+            </FormControl>
             <TextField
               margin="normal"
               required
