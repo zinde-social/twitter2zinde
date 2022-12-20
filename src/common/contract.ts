@@ -135,8 +135,8 @@ export interface TweetData {
   full_text: string;
 
   //retweeted: boolean; // it's just all false, use /^RT @\w+:/ instead
-  extended_entities: {
-    media: {
+  extended_entities?: {
+    media?: {
       media_url: string;
     }[];
   };
@@ -156,19 +156,21 @@ export const signerPostNote = async (
 
   // Upload medias to IPFS
   const mediaAttachments: NoteMetadataAttachmentBase<"address">[] = [];
-  for (const m of tweet.extended_entities.media) {
-    const mediaFileName = `${tweet.id_str}-${m.media_url.split("/").pop()}`;
-    const mediaFullName = `${mediaDirectory}/${mediaFileName}`;
-    const result = await fetch(mediaFullName);
-    const blob = await result.blob();
-    const ipfsUri = await uploadFile(blob);
-    mediaAttachments.push({
-      name: mediaFileName,
-      address: ipfsUri,
-      mime_type: blob.type,
-      size_in_bytes: blob.size,
-      alt: mediaFileName,
-    });
+  if (!!tweet.extended_entities?.media) {
+    for (const m of tweet.extended_entities.media) {
+      const mediaFileName = `${tweet.id_str}-${m.media_url.split("/").pop()}`;
+      const mediaFullName = `${mediaDirectory}/${mediaFileName}`;
+      const result = await fetch(mediaFullName);
+      const blob = await result.blob();
+      const ipfsUri = await uploadFile(blob);
+      mediaAttachments.push({
+        name: mediaFileName,
+        address: ipfsUri,
+        mime_type: blob.type,
+        size_in_bytes: blob.size,
+        alt: mediaFileName,
+      });
+    }
   }
 
   // Upload note
