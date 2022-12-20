@@ -143,6 +143,7 @@ export interface TweetData {
 
   in_reply_to_user_id_str?: string;
   in_reply_to_status_id_str?: string;
+  in_reply_to_screen_name?: string;
 }
 
 export const signerPostNote = async (
@@ -185,7 +186,15 @@ export const signerPostNote = async (
   const noteIPFSUri = await uploadJson(note);
 
   // Push on chain
-  await gContract.postNote(characterId, noteIPFSUri);
+  if (!!tweet.in_reply_to_status_id_str) {
+    await gContract.postNoteForAnyUri(
+      characterId,
+      noteIPFSUri,
+      `https://twitter.com/${tweet.in_reply_to_screen_name}/status/${tweet.in_reply_to_status_id_str}`
+    );
+  } else {
+    await gContract.postNote(characterId, noteIPFSUri);
+  }
 };
 
 export const checkDuplicate = async (

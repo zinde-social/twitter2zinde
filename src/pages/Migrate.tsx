@@ -115,7 +115,7 @@ const Migrate = () => {
       const parsedTweets = allTweetsInGroup.map(
         (wrappedTweet: { tweet: TweetData }): tweetPendingMigration => {
           const tweet = wrappedTweet.tweet;
-          const isReply = !!tweet.in_reply_to_user_id_str;
+          const isReply = !!tweet.in_reply_to_status_id_str;
           const isRetweet = tweet.full_text.startsWith("RT @");
           const isMigrated = currentProgress.finishedIDs.includes(tweet.id_str);
           return {
