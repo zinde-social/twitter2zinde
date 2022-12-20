@@ -77,6 +77,17 @@ export const checkOperator = async (): Promise<boolean> => {
     throw new Error("Contract not initialized.");
   }
 
+  // Check if is owner
+  const characterData = await fetch(
+    `https://indexer.crossbell.io/v1/characters/${characterId}`
+  ).then((res) => res.json());
+  if (signerAddress.toLowerCase() === characterData.owner?.toLowerCase()) {
+    // Is owner
+    console.log("Signer is owner");
+    return true;
+  }
+
+  // Otherwise need operator authorization
   const { data: permissions } =
     await gContract.getOperatorPermissionsForCharacter(
       characterId,
