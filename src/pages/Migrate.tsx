@@ -309,24 +309,24 @@ const Migrate = () => {
                     );
                   }
                 }
+
+                console.log(selectedGroup, "finished");
+
+                const progress = getProgress();
+                setProgress({
+                  ...progress,
+                  finishedGroups: progress.finishedGroups.concat(selectedGroup),
+                  processingGroup: "",
+                });
+
+                checkAllGroups();
               } catch (e: any) {
                 console.log(e);
                 setErrorMessage(e.message);
                 setShowingError(true);
               }
 
-              console.log(selectedGroup, "finished");
-
-              const progress = getProgress();
-              setProgress({
-                ...progress,
-                finishedGroups: progress.finishedGroups.concat(selectedGroup),
-                processingGroup: "",
-              });
-
               setLoading(false);
-
-              checkAllGroups();
             }}
             disabled={selectedGroup === ""}
           >
