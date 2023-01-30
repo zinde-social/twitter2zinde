@@ -181,6 +181,7 @@ export const signerPostNote = async (
     content: tweet.full_text,
     attachments: mediaAttachments,
     external_urls: [`https://twitter.com/${user}/status/${tweet.id_str}`],
+    date_published: new Date(tweet.created_at).toISOString(),
   };
 
   const noteIPFSUri = await uploadJson(note);
